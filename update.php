@@ -14,7 +14,6 @@ $error = '';
 $success = '';
 
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
-    // Check for duplicate email (excluding current record)
     $email = strtolower($_POST['email']);
     $check = $pdo->prepare("SELECT * FROM persons WHERE email = ? AND id != ?");
     $check->execute([$email, $id]);
@@ -34,11 +33,11 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         ]);
 
         $success = "User updated successfully!";
-        header("location: dashboard.php");
+        header("Location: dashboard.php");
+        exit;
     }
 }
 
-// Fetch user info
 $stmt = $pdo->prepare("SELECT * FROM persons WHERE id = ?");
 $stmt->execute([$id]);
 $person = $stmt->fetch();
@@ -53,37 +52,43 @@ Database::disconnect();
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body class="bg-light">
-<div class="container mt-5">
-    <h2>Update Person</h2>
+<div class="container mt-5" style="max-width: 600px;">
+    <div class="card border-danger">
+        <div class="card-header bg-danger text-white">
+            <h4>Update Person</h4>
+        </div>
+        <div class="card-body">
+            <?php if ($error): ?>
+                <div class="alert alert-danger"><?= $error ?></div>
+            <?php elseif ($success): ?>
+                <div class="alert alert-success"><?= $success ?></div>
+            <?php endif; ?>
 
-    <?php if ($error): ?>
-        <div class="alert alert-danger"><?= $error ?></div>
-    <?php elseif ($success): ?>
-        <div class="alert alert-success"><?= $success ?></div>
-    <?php endif; ?>
-
-    <form method="post">
-        <div class="mb-3">
-            <label>First Name</label>
-            <input type="text" name="fname" class="form-control" value="<?= htmlspecialchars($person['fname']) ?>" required>
+            <form method="post">
+                <div class="mb-3">
+                    <label class="form-label">First Name</label>
+                    <input type="text" name="fname" class="form-control border-danger" value="<?= htmlspecialchars($person['fname']) ?>" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Last Name</label>
+                    <input type="text" name="lname" class="form-control border-danger" value="<?= htmlspecialchars($person['lname']) ?>" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Email</label>
+                    <input type="email" name="email" class="form-control border-danger" value="<?= htmlspecialchars($person['email']) ?>" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Title</label>
+                    <select name="title" class="form-control border-danger" required>
+                        <option value="User" <?= $person['title'] === 'User' ? 'selected' : '' ?>>User</option>
+                        <option value="Admin" <?= $person['title'] === 'Admin' ? 'selected' : '' ?>>Admin</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-danger">Update</button>
+                <a href="dashboard.php" class="btn btn-secondary">Cancel</a>
+            </form>
         </div>
-        <div class="mb-3">
-            <label>Last Name</label>
-            <input type="text" name="lname" class="form-control" value="<?= htmlspecialchars($person['lname']) ?>" required>
-        </div>
-        <div class="mb-3">
-            <label>Email</label>
-            <input type="email" name="email" class="form-control" value="<?= htmlspecialchars($person['email']) ?>" required>
-        </div>
-        <div class="mb-3">
-            <label>Title</label>
-            <select name="title" class="form-control" required>
-                <option value="User" <?= $person['title'] === 'User' ? 'selected' : '' ?>>User</option>
-                <option value="Admin" <?= $person['title'] === 'Admin' ? 'selected' : '' ?>>Admin</option>
-            </select>
-        </div>
-        <button type="submit" class="btn btn-primary">Update</button>
-    </form>
+    </div>
 </div>
 </body>
 </html>
